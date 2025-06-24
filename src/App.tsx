@@ -8,9 +8,11 @@ function App() {
   return (
     <>
       <Router>
-        <Header />
-        <RoutesComponent />
-        <Footer />
+        <div className="mx-auto max-w-[1440px]">
+          <Header />
+          <RoutesComponent />
+          <Footer />
+        </div>
       </Router>
     </>
   );
