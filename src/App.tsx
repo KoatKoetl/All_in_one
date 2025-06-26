@@ -8,7 +8,7 @@ function App() {
   return (
     <>
       <Router>
-        <div className="mx-auto max-w-[1440px]">
+        <div className="mx-auto max-w-[1440px] px-2 sm:px-4 2xl:px-0">
           <Header />
           <RoutesComponent />
           <Footer />
