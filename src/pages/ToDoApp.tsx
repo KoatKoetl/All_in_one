@@ -199,7 +199,7 @@ const ToDoApp = () => {
                 <h3 className="text-lg font-semibold">{note.title}</h3>
                 <div>
                   <h4 className="font-semibold mb-1">Description</h4>
-                  <p className="">{note.description}</p>
+                  <p className="whitespace-pre-line">{note.description}</p>
                 </div>
                 <p className="text-sm text-gray-500 text-right">
                   Created on: {note.creationDate.toLocaleDateString()} at{" "}
