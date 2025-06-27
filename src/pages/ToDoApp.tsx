@@ -14,21 +14,44 @@ const PopUpForm = ({
   isFormOpen,
   closeCreateNoteForm,
   createNote,
+  noteToEdit,
+  updateNote,
 }: {
   isFormOpen: boolean;
   closeCreateNoteForm: () => void;
   createNote: (note: Note) => void;
+  noteToEdit: Note | null;
+  updateNote: (note: Note) => void;
 }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [creationDate, setCreationDate] = useState(new Date());
+
+  useEffect(() => {
+    if (noteToEdit) {
+      setTitle(noteToEdit.title);
+      setDescription(noteToEdit.description);
+      setCreationDate(noteToEdit.creationDate);
+    } else {
+      setTitle("");
+      setDescription("");
+      setCreationDate(new Date());
+    }
+  }, [noteToEdit]);
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
 
     if (!title.trim()) return;
 
-    createNote({ title, description, creationDate });
+    const note = { title, description, creationDate };
+
+    if (noteToEdit) {
+      updateNote(note);
+    } else {
+      createNote(note);
+    }
+
     setTitle("");
     setDescription("");
     setCreationDate(new Date());
@@ -47,7 +70,9 @@ const PopUpForm = ({
         >
           x
         </button>
-        <h2 className="text-lg font-semibold mb-4">Create new note</h2>
+        <h2 className="text-lg font-semibold mb-4">
+          {noteToEdit ? "Edit Note" : "Create New Note"}
+        </h2>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-2">
             <div>
@@ -77,7 +102,7 @@ const PopUpForm = ({
           </div>
           <div className="flex my-2 gap-2">
             <Button type="submit" onClick={handleSubmit}>
-              Create
+              {noteToEdit ? "Save Changes" : "Create"}
             </Button>
             <Button
               type="button"
@@ -127,29 +152,7 @@ const ToDoApp = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [notes, setNotes] = useState([] as Note[]);
   const [noteToDelete, setNoteToDelete] = useState<Note | null>(null);
-
-  const openCreateNoteForm = () => {
-    setIsFormOpen(true);
-  };
-
-  const closeCreateNoteForm = () => {
-    setIsFormOpen(false);
-  };
-
-  const createNote = (note: Note) => {
-    const updatedNotes = [...notes, note];
-    setNotes(updatedNotes);
-    localStorage.setItem("notes", JSON.stringify(updatedNotes));
-    closeCreateNoteForm();
-  };
-
-  const deleteNote = (noteId: number) => {
-    const updatedNotes = notes.filter(
-      (note) => note.creationDate.getTime() !== noteId
-    );
-    setNotes(updatedNotes);
-    localStorage.setItem("notes", JSON.stringify(updatedNotes));
-  };
+  const [noteToEdit, setNoteToEdit] = useState<Note | null>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem("notes");
@@ -162,6 +165,43 @@ const ToDoApp = () => {
     }
   }, []);
 
+  const openCreateNoteForm = () => {
+    setNoteToEdit(null);
+    setIsFormOpen(true);
+  };
+
+  const closeCreateNoteForm = () => {
+    setIsFormOpen(false);
+    setNoteToEdit(null);
+  };
+
+  const createNote = (note: Note) => {
+    const updatedNotes = [...notes, note];
+    setNotes(updatedNotes);
+    localStorage.setItem("notes", JSON.stringify(updatedNotes));
+    setNoteToEdit(null);
+    closeCreateNoteForm();
+  };
+
+  const deleteNote = (noteId: number) => {
+    const updatedNotes = notes.filter(
+      (note) => note.creationDate.getTime() !== noteId
+    );
+    setNotes(updatedNotes);
+    localStorage.setItem("notes", JSON.stringify(updatedNotes));
+  };
+
+  const updateNote = (updatedNote: Note) => {
+    const updatedNotes = notes.map((note) =>
+      note.creationDate.getTime() === updatedNote.creationDate.getTime()
+        ? updatedNote
+        : note
+    );
+    setNotes(updatedNotes);
+    localStorage.setItem("notes", JSON.stringify(updatedNotes));
+    closeCreateNoteForm();
+  };
+
   return (
     <section>
       <h1>To Do app</h1>
@@ -172,8 +212,10 @@ const ToDoApp = () => {
       </div>
       <PopUpForm
         isFormOpen={isFormOpen}
+        noteToEdit={noteToEdit}
         closeCreateNoteForm={closeCreateNoteForm}
         createNote={createNote}
+        updateNote={updateNote}
       />
 
       <div className="notes-wrapper my-6">
@@ -205,13 +247,23 @@ const ToDoApp = () => {
                   Created on: {note.creationDate.toLocaleDateString()} at{" "}
                   {note.creationDate.toLocaleTimeString()}
                 </p>
-                <Button
-                  variant="destructive"
-                  className="justify-self-end"
-                  onClick={() => setNoteToDelete(note)}
-                >
-                  Delete
-                </Button>
+                <div className="justify-self-end flex gap-2">
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      setNoteToEdit(note);
+                      setIsFormOpen(true);
+                    }}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={() => setNoteToDelete(note)}
+                  >
+                    Delete
+                  </Button>
+                </div>
               </div>
             </li>
           ))}
